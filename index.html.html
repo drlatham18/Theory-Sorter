@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selective Theory Sorter Self-Grading</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f6f2; --surface:#ffffff; --surface2:#f3f0ec; --text:#28251d; --muted:#6f6b62; --border:#d4d1ca; --primary:#01696f; --primary2:#0c4e54; --accent:#cedcd8; --radius:14px;
+}
+*{box-sizing:border-box} body{margin:0;font-family:'Satoshi',sans-serif;background:var(--bg);color:var(--text);line-height:1.45} 
+header{padding:28px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fbfbf9,#f7f6f2)}
+main{max-width:1100px;margin:0 auto;padding:20px} h1{margin:0 0 8px;font-size:clamp(1.8rem,2vw,2.5rem)} p{max-width:80ch} .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 4px 18px rgba(0,0,0,.04);margin:16px 0}
+.instructions{display:grid;gap:8px} .legend{display:flex;gap:8px;flex-wrap:wrap;font-size:.92rem;color:var(--muted)} .pill{padding:6px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--border)}
+.controls{position:sticky;top:0;background:rgba(247,246,242,.92);backdrop-filter:blur(8px);padding:12px 0;z-index:5}
+.buttons{display:flex;gap:10px;flex-wrap:wrap} button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer} .primary{background:var(--primary);color:#fff} .secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px 0;border-top:1px solid #ece8e2} .item:first-child{border-top:0} .prompt{font-size:1rem}
+.scale{display:grid;grid-template-columns:repeat(7,42px);gap:6px;justify-content:end} .scale label{display:grid;place-items:center;font-size:.85rem;color:var(--muted)} .scale input{width:18px;height:18px;accent-color:var(--primary)}
+.tablewrap{overflow:auto} table{width:100%;border-collapse:collapse} th,td{padding:10px 12px;border-bottom:1px solid #ece8e2;text-align:left} th{font-size:.9rem;color:var(--muted)} .right{text-align:right} .top3 li{margin:6px 0}
+.footer-note{font-size:.92rem;color:var(--muted)}
+@media (max-width:780px){ .item{grid-template-columns:1fr} .scale{justify-content:start;grid-template-columns:repeat(7,36px)} }
+</style>
+</head>
+<body>
+<header>
+  <main>
+    <h1>Selective Theory Sorter — Self-Grading Version</h1>
+    <p>This version keeps the same -3 to +3 response scale as your attached document, but it automatically totals the columns, maps them to theories, and identifies the top scoring approaches.</p>
+  </main>
+</header>
+<main>
+  <section class="card instructions">
+    <strong>How to use it</strong>
+    <p>For each statement, choose a number from -3 to +3, where -3 means “not at all like me,” 0 means neutral, and +3 means “a lot like me.”</p>
+    <div class="legend">
+      <span class="pill">-3 strongly unlike me</span>
+      <span class="pill">0 neutral</span>
+      <span class="pill">+3 strongly like me</span>
+    </div>
+  </section>
+  <section class="controls">
+    <div class="buttons">
+      <button class="primary" id="gradeBtn">Grade responses</button>
+      <button class="secondary" id="resetBtn">Reset all</button>
+      <button class="secondary" id="printBtn">Print / Save PDF</button>
+    </div>
+  </section>
+  <section class="card" id="items"></section>
+  <section class="card">
+    <h2>Scores by theory</h2>
+    <div class="tablewrap">
+      <table id="resultsTable">
+        <thead><tr><th>Theory</th><th class="right">Total score</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Highest scores</h2>
+    <ol class="top3" id="top3"></ol>
+    <p class="footer-note">If you want, this file can be converted later into a fillable Word form, but HTML is the most reliable format for true self-grading without macros.</p>
+  </section>
+</main>
+<script>
+const items = [[1, "Individual problems are best viewed in the context of a family system"], [2, "A major goal of therapy should be to assist the client in reaching a stage of unconditional self-acceptance by changing irrational beliefs."], [3, "A warm relationship between the therapist and client is not a necessary or sufficient condition for effective personality change."], [4, "Behavior is a way to control perceptions."], [5, "Behaviors is both consciously and unconsciously motivated by the environment and psychic energy."], [6, "Childhood events are the baseline for adult personality"], [7, "Childhood sexual attractions toward parents are responsible for later neurotic symptoms."], [8, "Clients are capable of imagining which behaviors are desirable and then working to make those images a behavioral reality."], [9, "Clients must take ultimate responsibility fir the way their life is lived."], [10, "Coming to grips with the unconscious part of the personality is the only way to truly achieve individuation."], [11, "Dream interpretations, free association, hypnotic techniques, and fantasizing are good ways of gaining access to the unconscious."], [12, "Each person determines the essence of their existence."], [13, "Each person is unique and has the ability to reach full potential."], [14, "Everyone is unique."], [15, "Counseling should include advocating for clients"], [16, "Culture should be of utmost consideration in the counseling relationship."], [17, "Goals of therapy should include assisting the clients in learning the consciousness of their responsibility, bringing unconscious spiritual factors to the conscious, and recovering meaning to existence."], [18, "How a person thinks largely determines how that person feels and behaves."], [19, "Human problems stem not from external events or situations but from people’s view or beliefs about them"], [20, "Humans are constantly striving to maintain equilibrium."], [21, "Humans are pulled by the future and are self-controlled."], [22, "Humans strive for actualization – to maintain or promote growth."], [23, "Irrational beliefs are the principle cause of emotional disturbance."], [24, "It is important to fulfill one’s needs, and do so in a way that does not deprive other of the ability to fulfill their needs."], [25, "Maladaptive behaviors, like adaptive behaviors, are learned. They can also be unlearned."], [26, "Maladjusted behavior results in losing effective control over perceptions and over entire lives."], [27, "Gender is an important dynamic in the counseling relationship."], [28, "Movement toward psychological growth and self-actualization is often sabotaged by self-defeating thoughts."], [29, "Mutual trust, acceptance, and spontaneity are important when building the counselor-client relationship."], [30, "People are sexual beings."], [31, "People control what they believe, not what actually exists."], [32, "People have both internal and external definitions of themselves."], [33, "People have the need to survive and reproduce – basic biological needs."], [34, "Personality development is founded more on a progression of learned cognitions than on biological predispositions."], [35, "Personality is acquired through the use of negative and/or positive reinforcers."], [36, "Personality is constructed through the attribution of meaning."], [37, "Providing genuineness, unconditional positive regard, and empathic understanding is essential to promote growth in the client."], [38, "Recognizing cognitive processing in emotion and behavior is central in therapy."], [39, "Social urges take precedence over sexual urges in personality development."], [40, "Successful adaptation to life depends on the degree of social interest in goal striving."], [41, "The central focus of counseling should be the client’s experiencing of feelings."], [42, "The conscious rather than the unconscious is the primary source of ideas and values."], [43, "Therapy would be optimal if all impacted family members came into the counseling office together."], [44, "Major therapeutic gains can occur in a short amount of time."], [45, "The integration of the total person in their own unique field is essential in therapy."], [46, "People’s problems are best viewed as separate from them."], [47, "The past determines the present, even though human motivation should be focused on the future."], [48, "The process of individuation and self-realization should be the goal of living and of therapy."], [49, "The purpose of therapy is to bring the unconscious conscious."], [50, "The role in the family is one of the biggest influences in determining the personality characteristics of the client."], [51, "The unconscious contains more than repressed material: it is a place of creativity, guidance and meaning."], [52, "The ways people form, organize, and interpret their basic cognitive structures determine how they will perceive and behave."], [53, "Often individual problems occur due to the structure of one’s immediate family."], [54, "Therapy should be here-and-now based, where every moment of life matters."], [55, "Therapy should focus on living more honestly and being less caught up in trivialities."], [56, "There are not underlying causes for maladjustment. Maladjustive behavior can be directly defined and attacked."], [57, "Individual change best occurs be change the family."], [58, "Much of how we define ourselves comes from our family."], [59, "There is no such thing as free will or voluntary behavior."], [60, "Viewing an event or situation out of context is one of the systematic errors in cognitive reasoning."]];
+const theories = [["A", "Psychoanalytic"], ["B", "Analytic Psychology"], ["C", "Individual Psychology"], ["D", "Person-Centered"], ["E", "Gestalt"], ["F", "Constructivist school of thought"], ["G", "Behaviorism"], ["H", "REBT"], ["I", "Reality Therapy"], ["J", "Cognitive-Behavioral"], ["K", "Family Theories school of thought"], ["L", "Existential"]];
+const itemContainer = document.getElementById('items');
+const values = [-3,-2,-1,0,1,2,3];
+
+function rowForItem([num, text]) {
+  const div = document.createElement('div');
+  div.className = 'item';
+  const radios = values.map(v => `<label><input type="radio" name="item-${num}" value="${v}">${v}</label>`).join('');
+  div.innerHTML = `<div class="prompt"><strong>${num}.</strong> ${text}</div><div class="scale">${radios}</div>`;
+  return div;
+}
+items.forEach(it => itemContainer.appendChild(rowForItem(it)));
+
+function selectedValue(n) {
+  const el = document.querySelector(`input[name="item-${n}"]:checked`);
+  return el ? Number(el.value) : 0;
+}
+
+function grade() {
+  const totals = Object.fromEntries(theories.map(([k]) => [k,0]));
+  for (let i=1;i<=60;i++) {
+    const v = selectedValue(i);
+    const col = theories[(i-1)%12][0];
+    totals[col] += v;
+  }
+  const tbody = document.querySelector('#resultsTable tbody');
+  tbody.innerHTML = '';
+  const ranked = theories.map(([k,name]) => [name, totals[k]]).sort((a,b)=>b[1]-a[1]);
+  theories.forEach(([k,name]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${k}. ${name}</td><td class="right">${totals[k]}</td>`;
+    tbody.appendChild(tr);
+  });
+  const top3 = document.getElementById('top3');
+  top3.innerHTML = ranked.slice(0,3).map(([name,score]) => `<li><strong>${name}</strong> — ${score}</li>`).join('');
+}
+
+document.getElementById('gradeBtn').addEventListener('click', grade);
+document.getElementById('resetBtn').addEventListener('click', () => { document.querySelectorAll('input[type="radio"]:checked').forEach(i=>i.checked=false); grade(); });
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+grade();
+</script>
+</body>
+</html>
