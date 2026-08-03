@@ -1,0 +1,6 @@
+
+# Environment / secrets — never commit (added 2026-08-03)
+.env
+.env.*
+!.env.example
+!.env.template
